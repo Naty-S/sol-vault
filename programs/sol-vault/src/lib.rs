@@ -16,6 +16,12 @@ pub mod sol_vault {
         
         ctx.accounts.initialize(&ctx.bumps)
     }
+
+    // Deposit instruction
+    pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
+        
+        ctx.accounts.deposit(amount)
+    }
 }
 
 #[derive(Accounts)]
@@ -69,11 +75,51 @@ impl<'info> Initialize<'info> {
 
         transfer(cpi_ctx, rent_exempt)?;
 
-        // save the bumps for 
         self.vault_state.state_bump = bumps.vault_state;
         self.vault_state.vault_bump = bumps.vault;
 
         Ok(())
+    }
+}
+
+#[derive(Accounts)]
+// Deposit context
+pub struct Deposit<'info> {
+    
+    #[account(mut)]
+    pub user: Signer<'info>,
+    
+    #[account(
+        seeds = [b"state", user.key().as_ref()],
+        bump = vault_state.state_bump, // already calculated at init
+    )]
+    pub vault_state: Account<'info, VaultState>,
+    
+    #[account(
+        mut, // 'cuz adding lamports (SOL)
+        seeds = [b"vault", vault_state.key().as_ref()], 
+        bump = vault_state.vault_bump,
+    )]
+    pub vault: SystemAccount<'info>,
+    
+    // Allows the lamport transfer
+    pub system_program: Program<'info, System>,
+}
+
+// Deposit context functions
+impl<'info> Deposit<'info> {
+    pub fn deposit(&mut self, amount: u64) -> Result<()> {
+
+        let cpi_program = self.system_program.to_account_info();
+
+        let cpi_accounts = Transfer {
+            from: self.user.to_account_info(),
+            to: self.vault.to_account_info(),
+        };
+
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+
+        transfer(cpi_ctx, amount)
     }
 }
 
