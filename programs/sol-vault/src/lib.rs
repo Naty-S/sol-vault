@@ -97,10 +97,11 @@ impl<'info> Initialize<'info> {
 // Deposit context
 pub struct Deposit<'info> {
     
-    #[account(mut)]
+    #[account(mut)] // mutable 'cuz the user is depositing funds
     pub user: Signer<'info>,
     
     #[account(
+        // not mut 'cuz not changing any data in the account
         seeds = [b"state", user.key().as_ref()],
         bump = vault_state.state_bump, // already calculated at init
     )]
@@ -138,7 +139,7 @@ impl<'info> Deposit<'info> {
 // Withdraw context
 pub struct Withdraw<'info> {
     
-    #[account(mut)]
+    #[account(mut)] // mutable 'cuz the user will receive lamports
     pub user: Signer<'info>,
     
     #[account(
@@ -169,18 +170,21 @@ impl<'info> Withdraw<'info> {
             to: self.user.to_account_info(),
         };
 
-        // Create seeds for the context to know the signer
+        // Create seeds for the context to know (create) the signature
+        // Needed to sign the ix
         // Use the vault (from) seeds for derivation (in same order) and bump
         let seeds = &[
             b"vault",
             self.vault_state.to_account_info().key.as_ref(),
             &[self.vault_state.vault_bump],
         ];
-
-        // Needed to sign the ix
         let signer_seeds = &[&seeds[..]];
 
-        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
+        let cpi_ctx = CpiContext::new_with_signer(
+            cpi_program,
+            cpi_accounts,
+            signer_seeds
+        );
 
         transfer(cpi_ctx, amount)
     }
