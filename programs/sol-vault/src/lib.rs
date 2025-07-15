@@ -163,6 +163,9 @@ pub struct Withdraw<'info> {
 impl<'info> Withdraw<'info> {
     pub fn withdraw(&mut self, amount: u64) -> Result<()> {
 
+        // TODO: Check that leaves the vault with a rent-excempt balance
+        // TODO: check that the account (vault) has enough funds for the user to withdraw
+
         let cpi_program = self.system_program.to_account_info();
 
         let cpi_accounts = Transfer {
@@ -189,6 +192,8 @@ impl<'info> Withdraw<'info> {
         transfer(cpi_ctx, amount)
     }
 }
+
+// TODO: optimize by merging Deposit and Withdraw contexts
 
 #[derive(Accounts)]
 // Close context

@@ -34,7 +34,6 @@ during the execution of the instruction that uses the context.
 >Tells Rust "Hey keep this, I need it thru 'X' instrcuction".
 
 **Account**: Accounts owned by the program (PDA's).
-HI, when we use the Account type it will always be a PDA? or there's a case where is not?
 
 **SystemAccount**: Used when storing data is not needed, can just to store lamports.
 
@@ -82,10 +81,17 @@ At deposit
 >*This is what makes wallet dryners to work*.
 
 After account initialization
->The Program doesn't need to recalculate the bumps over again
->every time (try to find), so it can create them with the same seeds and already calculated canonical bump.
+>The Program doesn't need to recalculate the bumps over again every time (try to find),
+>so it can create them with the same seeds and already calculated canonical bump.
 
 At withdraw
->The Program doesn't know the signature of the signer (vault. user is the only one that request the withdraw right?, then
-'cuz the seed used has the vault_state and this has the user in its seeds, then the program can know and create the signature, right?), so it has to
+>The Program doesn't know the signature of the signer (vault), so it has to
 >create it for the cpi context with the seeds saved in the vault state and bump.
+>
+>The vault can sign because as the user is the only one that request the withdrawal, then
+>'cuz the seed used has the `vault_state` and this has the user in its seeds, then the
+>program can know who the user is and create the signature.
+
+Closing
+>The account remains there until the garbage collector wipe out all accounts with no lamports
+>(even if they have data) at the end of every epoch.
