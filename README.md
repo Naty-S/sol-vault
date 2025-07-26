@@ -47,7 +47,12 @@ during the execution of the instruction that uses the context.
 
 **CpiContext::new**: Creates cpi context knowing the signature (inherited from tx) of the signer (user).
 
+> User (system account) initially signed the tx, so is inherited though the CPI; and
+> everything inside the tx (program) is signed by user. Runtime knows
+
 **CpiContext::new_with_signer**: Creates cpi context with the signer seeds to create the signature unkown at runtime.
+
+> When signing the CPI in behalf of the program with a PDA, the CPIed program is unaware of the signature
 
 **close**: Account constraint that zeroes out the data and transfers all the lamports out.
 
